@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using UnityEngine.InputSystem;
 
 public class GameManager : MonoBehaviour
 {
@@ -18,14 +19,13 @@ public class GameManager : MonoBehaviour
     public event Action<float> OnTimeChanged;
     public event Action<int> OnTargetDestroyed;
     public event Action OnGameOver;
+    public event Action OnGameStarted;
 
     public enum GameState { Title, Playing, Paused, GameOver }
     public GameState CurrentState { get; private set; } = GameState.Title;
 
     private void Awake()
     {
-        // Patrón Singleton: si ya existe una instancia, esta se destruye.
-        // Así cualquier script puede acceder con GameManager.Instance
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -41,10 +41,16 @@ public class GameManager : MonoBehaviour
         CurrentState = GameState.Playing;
         Time.timeScale = 1f;
         OnTimeChanged?.Invoke(TimeRemaining);
+        OnGameStarted?.Invoke();
     }
 
     private void Update()
     {
+        if (CurrentState == GameState.Title && Keyboard.current.anyKey.isPressed)
+        {
+            StartGame();
+        }
+
         if (CurrentState != GameState.Playing) return;
 
         TimeRemaining -= Time.deltaTime;
@@ -55,6 +61,8 @@ public class GameManager : MonoBehaviour
             TimeRemaining = 0f;
             EndGame();
         }
+
+        Debug.Log(TimeRemaining); //BORRAR CUANDO APAREZCA LA UI
     }
 
     // Los Targets llaman esto cuando son destruidos
