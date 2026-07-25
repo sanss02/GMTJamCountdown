@@ -12,6 +12,8 @@ public class PlayerShoot : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if(GameManager.Instance.CurrentState != GameManager.GameState.Playing) return;
+
         if (Mouse.current.leftButton.wasPressedThisFrame)
         {
             Shoot();

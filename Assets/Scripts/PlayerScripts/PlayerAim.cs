@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 
 public class PlayerAim : MonoBehaviour
 {
@@ -12,6 +13,8 @@ public class PlayerAim : MonoBehaviour
 
     private void Update()
     {
+        if(GameManager.Instance.CurrentState != GameManager.GameState.Playing) return;
+
         RotateTowardsMouse();
     }
 
