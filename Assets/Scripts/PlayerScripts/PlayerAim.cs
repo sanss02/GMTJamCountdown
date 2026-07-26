@@ -1,15 +1,27 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.LowLevel;
 
 public class PlayerAim : MonoBehaviour
 {
+    [SerializeField] private GameObject playerModel;
+    [SerializeField] private GameObject explosionEffectPrefab;
     private Camera mainCamera;
-
+    
     private void Awake()
     {
         mainCamera = Camera.main;
     }
+
+    void Start()
+    {
+        GameManager.Instance.OnStateChanged += HandleStateChanged;
+    }
+
+    private void OnDestroy()
+    {
+        GameManager.Instance.OnStateChanged -= HandleStateChanged;
+    }
+
 
     private void Update()
     {
@@ -35,10 +47,24 @@ public class PlayerAim : MonoBehaviour
         }
     }
 
-
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;
         Gizmos.DrawRay(transform.position, transform.forward * 5f);
+    }
+
+    private void HandleStateChanged(GameManager.GameState gameState)
+    {
+        playerModel.SetActive(gameState != GameManager.GameState.GameOver);
+
+        if (gameState == GameManager.GameState.GameOver)
+        {
+            AudioManager.Instance.PlaySFXPlayerExplosion();
+
+            if (explosionEffectPrefab != null)
+            {
+                Instantiate(explosionEffectPrefab, transform.position, Quaternion.identity);
+            }
+        }
     }
 }

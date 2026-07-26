@@ -27,7 +27,7 @@ Transform:
   m_GameObject: {fileID: 1603496432234640815}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 2.295}
+  m_LocalPosition: {x: 0, y: 0, z: 2.45}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -46,6 +46,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b7baa9131946df74aaef8bc2ce69a5ee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Target
+  hitEffectPrefab: {fileID: 3583552430423006997, guid: 2869901f7aae3ec4ab267d18969eb905, type: 3}
 --- !u!65 &2112258938400754965
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -369,7 +370,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: c22777d6e868e4f2fb421913386b154e, type: 2}
+  - {fileID: 2100000, guid: 2874a91e5e8b8834f9cbb6a20e915e2f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

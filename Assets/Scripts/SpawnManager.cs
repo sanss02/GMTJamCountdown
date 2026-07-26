@@ -7,17 +7,19 @@ public class SpawnManager : MonoBehaviour
     [SerializeField] private float radiusMultiplier = 5f;
     [SerializeField] private float minSpawnDistance = 2f;
     [SerializeField] private Renderer mapFloorRenderer;
-    private Vector3 startPosition = new Vector3(0f, 0f, 2.5f);
-    private float maxRadius;
+    private Vector3 startPosition = new Vector3(0f, 0f, 1f);
+    [SerializeField] private float maxRadius = 15f;
+    private float initialRadiusMultiplier;
 
     public event Action<float, float> OnAreaGrown;
 
-    void Awake()
+    private void Awake()
     {
-        maxRadius = mapFloorRenderer.bounds.extents.x;
+        initialRadiusMultiplier = radiusMultiplier;
+        maxRadius = 15f; // o el valor que hayas fijado
     }
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+
+    private void Start()
     {
         GameManager.Instance.OnGameStarted += HandleGameStarted;
         GameManager.Instance.OnTargetDestroyed += HandleTargetDestroyed;
@@ -41,9 +43,20 @@ public class SpawnManager : MonoBehaviour
 
     private void HandleGameStarted()
     {
+        ClearRemainingTargets();
+        radiusMultiplier = initialRadiusMultiplier;
         Instantiate(targetPrefab, startPosition, targetPrefab.transform.rotation);
     }
 
+
+    private void ClearRemainingTargets()
+    {
+        Target[] remainingTargets = FindObjectsByType<Target>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        foreach (Target target in remainingTargets)
+        {
+            Destroy(target.gameObject);
+        }
+    }
 
     private void SpawnRandomTarget()
     {
@@ -59,7 +72,8 @@ public class SpawnManager : MonoBehaviour
 
     private void IncreaseMultiplier()
     {
-        radiusMultiplier = Mathf.Min(radiusMultiplier += 5, maxRadius);
+        radiusMultiplier = Mathf.Min(radiusMultiplier += 3, maxRadius);
         OnAreaGrown?.Invoke(radiusMultiplier, maxRadius);
     }
+
 }

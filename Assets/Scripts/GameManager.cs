@@ -2,6 +2,7 @@ using UnityEngine;
 using System;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -10,14 +11,19 @@ public class GameManager : MonoBehaviour
     [Header("Timer Settings")]
     [SerializeField] private float startingTime = 10f;
     [SerializeField] private float maxTime = 10f;
-    [SerializeField] private float timeBonusPerTarget = 2f;
+    public float timeBonusPerTarget = 2f;
+
+    [SerializeField] private Button easyButton;
+    [SerializeField] private Button mediumButton;
+    [SerializeField] private Button hardButton;
+    [SerializeField] private Color selectedColor;
+    [SerializeField] private Color normalColor;
 
     public float TimeRemaining { get; private set; }
     public int TargetsDestroyed { get; private set; }
     public int HighScore { get; private set; }
+    private bool isPlayingFinalSecondsWarning = false;
 
-    // Otros scripts se suscriben a estos eventos en vez de que el GameManager
-    // los busque y les hable directamente. Esto reduce el acoplamiento.
     public event Action<GameState> OnStateChanged;
     public event Action<float> OnTimeChanged;
     public event Action<int> OnTargetDestroyed;
@@ -40,8 +46,50 @@ public class GameManager : MonoBehaviour
         Instance = this;
     }
 
+    private void Start()
+    {
+        HighlightSelected(easyButton); // Easy queda marcado desde el inicio
+    }
+    public void SetDifficultyEasy()
+    {
+        SetDifficulty(10f, 10f, 2f);
+        HighlightSelected(easyButton);
+    }
+
+    public void SetDifficultyMedium()
+    {
+        SetDifficulty(7f, 7f, 1.5f);
+        HighlightSelected(mediumButton);
+    }
+
+    public void SetDifficultyHard()
+    {
+        SetDifficulty(5f, 5f, 1f);
+        HighlightSelected(hardButton);
+    }
+
+    private void SetDifficulty(float newStartingTime, float newMaxTime, float newTimeBonus)
+    {
+        startingTime = newStartingTime;
+        maxTime = newMaxTime;
+        timeBonusPerTarget = newTimeBonus;
+    }
+
+    private void HighlightSelected(Button selectedButton)
+    {
+        easyButton.image.color = normalColor;
+        mediumButton.image.color = normalColor;
+        hardButton.image.color = normalColor;
+
+        selectedButton.image.color = selectedColor;
+    }
+
     public void StartGame()
     {
+        if (CurrentState == GameState.Playing) return;
+
+        AudioManager.Instance.PlaySFXClickButton();
+        isPlayingFinalSecondsWarning = false;
         TimeRemaining = startingTime;
         TargetsDestroyed = 0;
         CurrentState = GameState.Playing;
@@ -67,6 +115,17 @@ public class GameManager : MonoBehaviour
 
         TimeRemaining -= Time.deltaTime;
         OnTimeChanged?.Invoke(TimeRemaining);
+
+        if (TimeRemaining <= 3f && !isPlayingFinalSecondsWarning)
+        {
+            isPlayingFinalSecondsWarning = true;
+            AudioManager.Instance.PlaySFXFinalSeconds();
+        }
+        else if (TimeRemaining > 3f && isPlayingFinalSecondsWarning)
+        {
+            isPlayingFinalSecondsWarning = false;
+            AudioManager.Instance.StopSFXFinalSeconds();
+        }
 
         if (TimeRemaining <= 0f)
         {
@@ -108,6 +167,8 @@ public class GameManager : MonoBehaviour
             OnStateChanged?.Invoke(CurrentState);
             Time.timeScale = 1f;
         }
+
+        AudioManager.Instance.PlaySFXClickButton();
     }
 
     private void EndGame()
@@ -135,6 +196,6 @@ public class GameManager : MonoBehaviour
     public void RestartGame()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene("Game Scene");
+        SceneManager.LoadScene("Main Scene");
     }
 }

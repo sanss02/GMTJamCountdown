@@ -1,3 +1,4 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
 
@@ -14,10 +15,18 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject creditsPanel;
 
     [SerializeField] private TextMeshProUGUI timerText;
+    [SerializeField] private TextMeshProUGUI extraTimeText;
     [SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private TextMeshProUGUI highScoreText;
     [SerializeField] private TextMeshProUGUI highScoreGOText;
     [SerializeField] private TextMeshProUGUI finalScoreText;
+
+    [SerializeField] private Color normalTimerColor = Color.white;
+    [SerializeField] private Color warningTimerColor = new Color(1f, 0f, 0.408f); // #FF0068
+
+    private Coroutine extraTimeCoroutine;
+
+
     void Start()
     {
         GameManager.Instance.OnStateChanged += HandleStateChanged;
@@ -52,7 +61,7 @@ public class UIManager : MonoBehaviour
                 gameOver.SetActive(false);
 
                 HandleTimeChanged(GameManager.Instance.TimeRemaining);
-                HandleTargetDestroyed(GameManager.Instance.TargetsDestroyed);
+                scoreText.text = $"Score: {GameManager.Instance.TargetsDestroyed}";
                 break;
             case GameManager.GameState.Paused:
                 title.SetActive(false);
@@ -81,30 +90,54 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    private void HandleTimeChanged(float timeRemaining){
-        int time = (int)timeRemaining;
+    private void HandleTimeChanged(float timeRemaining)
+    {
+        int time = Mathf.CeilToInt(timeRemaining);
         timerText.text = time.ToString();
+
+        timerText.color = time <= 3 ? warningTimerColor : normalTimerColor;
     }
 
     private void HandleTargetDestroyed(int targetsDestroyed)
     {
         scoreText.text = $"Score: {targetsDestroyed}";
+        UpdateScoreText();
+    }
+
+    private void UpdateScoreText(){
+        extraTimeText.text = $"+{GameManager.Instance.timeBonusPerTarget}";
+        extraTimeText.gameObject.SetActive(true);
+
+        if (extraTimeCoroutine != null)
+        {
+            StopCoroutine(extraTimeCoroutine);
+        }
+        extraTimeCoroutine = StartCoroutine(HideExtraTimeTextAfterDelay(1f));
+    }
+
+    private IEnumerator HideExtraTimeTextAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        extraTimeText.gameObject.SetActive(false);
     }
 
     public void ShowHowToPlay()
     {
+        AudioManager.Instance.PlaySFXClickButton();
         title.SetActive(false);
         howToPlayPanel.SetActive(true);
     }
 
     public void ShowCredits()
     {
+        AudioManager.Instance.PlaySFXClickButton();
         title.SetActive(false);
         creditsPanel.SetActive(true);
     }
 
     public void BackToTitle()
     {
+        AudioManager.Instance.PlaySFXClickButton();
         howToPlayPanel.SetActive(false);
         creditsPanel.SetActive(false);
         title.SetActive(true);

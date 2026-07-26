@@ -9,6 +9,8 @@ public class PlayerShoot : MonoBehaviour
     [SerializeField] private Transform firePoint;
     [SerializeField] private float maxDistance = 100f;
 
+    [SerializeField] private GameObject shotTrailPrefab;
+
     // Update is called once per frame
     void Update()
     {
@@ -22,21 +24,31 @@ public class PlayerShoot : MonoBehaviour
 
     private void Shoot()
     {
+        AudioManager.Instance.PlaySFXShoot();      
+
         Vector3 origin = firePoint != null ? firePoint.position : transform.position;
         Vector3 direction = transform.forward;
 
+        Vector3 endPoint;
+
         if (Physics.Raycast(origin, direction, out RaycastHit hit, maxDistance))
         {
-            Debug.DrawLine(origin, hit.point, Color.red, 0.5f);
+            endPoint = hit.point;
 
-            if(hit.collider.TryGetComponent(out Target target))
+            if (hit.collider.TryGetComponent(out Target target))
             {
                 target.Hit();
             }
         }
         else
         {
-            Debug.DrawRay(origin, direction * maxDistance, Color.gray, 0.5f);
+            endPoint = origin + direction * maxDistance;
+        }
+
+        if (shotTrailPrefab != null)
+        {
+            GameObject trailObj = Instantiate(shotTrailPrefab);
+            trailObj.GetComponent<ShotTrail>().Show(origin, endPoint);
         }
     }
 }

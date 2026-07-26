@@ -3,15 +3,22 @@ using UnityEngine;
 public class CameraZoom : MonoBehaviour
 {
     [SerializeField] private SpawnManager spawnManager;
-    [SerializeField] private float minDistance = 8f;
-    [SerializeField] private float maxDistance = 20f;
+
+    [SerializeField] private float minDistanceScale = 1f;   // tu posición actual = escala 1
+    [SerializeField] private float maxDistanceScale = 9f;   // ajusta jugando, hasta cubrir tu radio máximo
     [SerializeField] private float zoomSpeed = 2f;
 
-    private float targetDistance;
+    private Vector3 baseDirection; // dirección normalizada de tu posición inicial
+    private float targetScale;
 
     private void Start()
     {
-        targetDistance = minDistance;
+        baseDirection = transform.position.normalized;
+        targetScale = minDistanceScale;
+
+        // Fuerza el encuadre inicial de inmediato, sin esperar el lerp
+        transform.position = baseDirection * (transform.position.magnitude * minDistanceScale);
+
         spawnManager.OnAreaGrown += HandleAreaGrown;
     }
 
@@ -22,16 +29,19 @@ public class CameraZoom : MonoBehaviour
 
     private void HandleAreaGrown(float currentRadius, float maxRadius)
     {
-        Debug.Log($"Evento recibido. Radio actual: {currentRadius}, Radio máximo: {maxRadius}");
+        if (maxRadius <= 0f) return; // evita división entre cero
+
         float t = currentRadius / maxRadius;
-        targetDistance = Mathf.Lerp(minDistance, maxDistance, t);
-        Debug.Log($"Nuevo targetDistance: {targetDistance}");
+        targetScale = Mathf.Lerp(minDistanceScale, maxDistanceScale, t);
     }
 
     private void Update()
     {
-        float currentDistance = transform.position.magnitude;
-        float newDistance = Mathf.Lerp(currentDistance, targetDistance, Time.deltaTime * zoomSpeed);
-        transform.position = transform.position.normalized * newDistance;
+        float baseMagnitude = 6.5f; 
+        float currentMagnitude = transform.position.magnitude;
+        float targetMagnitude = baseMagnitude * targetScale;
+
+        float newMagnitude = Mathf.Lerp(currentMagnitude, targetMagnitude, Time.deltaTime * zoomSpeed);
+        transform.position = baseDirection * newMagnitude;
     }
 }
