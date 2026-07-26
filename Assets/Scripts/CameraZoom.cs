@@ -7,24 +7,30 @@ public class CameraZoom : MonoBehaviour
     [SerializeField] private float minDistanceScale = 1f;   // tu posición actual = escala 1
     [SerializeField] private float maxDistanceScale = 9f;   // ajusta jugando, hasta cubrir tu radio máximo
     [SerializeField] private float zoomSpeed = 2f;
-
+    
     private Vector3 baseDirection; // dirección normalizada de tu posición inicial
     private float targetScale;
+    private float baseMagnitude;
 
     private void Start()
     {
         baseDirection = transform.position.normalized;
-        targetScale = minDistanceScale;
-
-        // Fuerza el encuadre inicial de inmediato, sin esperar el lerp
-        transform.position = baseDirection * (transform.position.magnitude * minDistanceScale);
+        baseMagnitude = transform.position.magnitude;
+        ResetCamera();
 
         spawnManager.OnAreaGrown += HandleAreaGrown;
+        GameManager.Instance.OnGameStarted += HandleGameStarted;
     }
 
     private void OnDestroy()
     {
         spawnManager.OnAreaGrown -= HandleAreaGrown;
+        GameManager.Instance.OnGameStarted -= HandleGameStarted;
+    }
+
+    private void HandleGameStarted()
+    {
+        ResetCamera();
     }
 
     private void HandleAreaGrown(float currentRadius, float maxRadius)
@@ -43,5 +49,11 @@ public class CameraZoom : MonoBehaviour
 
         float newMagnitude = Mathf.Lerp(currentMagnitude, targetMagnitude, Time.deltaTime * zoomSpeed);
         transform.position = baseDirection * newMagnitude;
+    }
+
+    private void ResetCamera()
+    {
+        targetScale = minDistanceScale;
+        transform.position = baseDirection * (baseMagnitude * minDistanceScale);
     }
 }

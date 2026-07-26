@@ -16,13 +16,17 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Button easyButton;
     [SerializeField] private Button mediumButton;
     [SerializeField] private Button hardButton;
-    [SerializeField] private Color selectedColor;
+    [SerializeField] private Color selectedEasyColor;
+    [SerializeField] private Color selectedMediumColor;
+    [SerializeField] private Color selectedHardColor;
+
     [SerializeField] private Color normalColor;
 
     public float TimeRemaining { get; private set; }
     public int TargetsDestroyed { get; private set; }
     public int HighScore { get; private set; }
     private bool isPlayingFinalSecondsWarning = false;
+    private static bool shouldAutoStart = false;
 
     public event Action<GameState> OnStateChanged;
     public event Action<float> OnTimeChanged;
@@ -32,6 +36,7 @@ public class GameManager : MonoBehaviour
 
     public enum GameState { Title, Playing, Paused, GameOver }
     public GameState CurrentState { get; private set; } = GameState.Title;
+    private bool isReloading = false;
 
     private void Awake()
     {
@@ -81,7 +86,18 @@ public class GameManager : MonoBehaviour
         mediumButton.image.color = normalColor;
         hardButton.image.color = normalColor;
 
-        selectedButton.image.color = selectedColor;
+        if(selectedButton == easyButton)
+        {
+            selectedButton.image.color = selectedEasyColor;
+        }
+        if(selectedButton == mediumButton)
+        {
+            selectedButton.image.color = selectedMediumColor;
+        }
+        if(selectedButton == hardButton)
+        {
+            selectedButton.image.color = selectedHardColor;
+        }
     }
 
     public void StartGame()
@@ -101,6 +117,14 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
+        if (isReloading) return;
+
+        if (shouldAutoStart)
+        {
+            shouldAutoStart = false;
+            StartGame();
+        }
+        
         if (CurrentState == GameState.Title && Keyboard.current.anyKey.isPressed)
         {
             StartGame();
@@ -195,6 +219,8 @@ public class GameManager : MonoBehaviour
 
     public void RestartGame()
     {
+        isReloading = true;
+        shouldAutoStart = true;
         Time.timeScale = 1f;
         SceneManager.LoadScene("Main Scene");
     }
